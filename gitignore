@@ -1,0 +1,18 @@
+# Streamlit secrets — NEVER commit
+.streamlit/secrets.toml
+
+# Cortex cookie files — NEVER commit
+.cortex_cookie
+CORTEX_COOKIE.env
+*.env
+
+# Standard Python ignores
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.DS_Store
+
+# Probe logs (may contain timestamps + correlation IDs, not secrets, but noisy)
+cortex_cookie_probe.log
