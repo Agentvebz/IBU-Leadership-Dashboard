@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
-from openai import AzureOpenAI
+import requests  # ═══ CHANGED: replaces `from openai import AzureOpenAI` ═══
 
 st.set_page_config(page_title="IBU NBA/E — Executive Summary", page_icon="📊", layout="wide", initial_sidebar_state="collapsed")
 
@@ -12,7 +12,81 @@ PC = [LR,BL,AM,PR,TL,"#10B981","#94A3B8"]
 
 LOGO = "iVBORw0KGgoAAAANSUhEUgAAAEkAAAA0CAYAAADGzxXDAAAFUUlEQVR4nO2Za4hVVRTH17n3zmg+y9ScMnDUUst8lWFWNonYhzCJrAQ/Zu9oIPtQhgXpByshNcSkUowgK6KQyuhhSTWFWkJFUSlmplZGJaKWOP76sP977prjvcOYjfcOnj9c9lmPvc9e66y91t77mmXIkCFDhgwZMmTIkOEUApAASaXnUZUA8kDe0blKzsejw76YoiGndzQnSUJbekmSNIvuIf1DHTW3ikPLpdBeXffcALwK/ALsAGaIny8/QidEarnkgUuAu4Gh4uWcPKe2ACymiENqm9J9Oj2ig4CewP3AVmf46pROzumuk85uYKqcegR42ffp9HDGTwa+l9F/AEuBa4DBcWnF6gV0AzZIdzMwRPKPxLtZdMG9JwFyna76uaiYDjTLwEeBPiV0Ey3DBFgr3Y3AWZI/JN4WoNaN3e48V3WIX1WRsh84DEx38oKc0pJ/1C6VM74B6sS7QU4+BIxz4+dS7zzHR2VsS+lWBZzRT8roR0TXppeE050t3b3AMPFuBP4R/ybxWvZNQA1wH7Ad+JuQx7qUirCqW4ruS24EjgIjZFA+pReNHScjAa4U7wHRR4CZ4hVcnyHAp9L5Ws48AvShdbUcFZ1eVXDL6GMtletEF9yvRm134FsZeCtQD7wr43cCV7u+0UGjgF3SaQTGyElvujnMpFhJDwNTxa+OquiW0L2a5I/AVWV0V0rnB2AVRbwA9I3jOcfXAz9L5xbxvhQ9XvQy0d+5aJvt51ZxUEyYNcAaZ3gTsAiYQ9gzPcOxeB+YonF6At31nAe6Apukd4/4r4meLzo6/RU5d5OibKDk1ZPEaX20mEXY+xwt4RSAT4D5wFjXZzjwK/A50Eu8x6W/WPQq0WtFN4peJ3pRyoHHLDVOdkJXBMXyHvc+NU4+gJCkJxMqEsCK1Bi1asdLfgDoDZwnepPkMQo/IOS1wYTcs13y6LD1hKpaqnC02jJUHClnrZABmwlLKC9DYi67XO0E4EI9P0+ogA16BngH6C35SkKkjgHudOP3KzOflm1ER9seXxi/SIFQod7QMnkLeBC4wOnGpLoHGBQn6iY9R/Ilrs8ZiqidwGeSrwa6SN6XkHc+BB5zDuzn5vUscJfeFaN1gOb5kj5Wx+UrQpLO62Xoi++gdQ56Cnhaz38CE9W31o2zQPLDwDTnuEtpjbniR/kk8Q+qXUaxGg4C3hP/L3QsAkYTth4Az+GOOx3iILUxZzSl5NMJUROxF5egpTMceFvyZuBh8RM5KxqzC7jI9UuAKwhFoZlw59QgWQG4HdjnHD9JsjvkMICFbqzjyk3tVnYD9zWz7eq72Mz2mFmdmU00s4ZUtw1m1mRmB8zsMjO7VvxtZjbEzF40s5/M7HozO9/M9plZVws3msvM7HczO9fMpkg/Yq+ZPWFmZ5vZDDMbaGa7zay/5MvNbIKZjRe9IEmSeYrIo+VuSf8XuGiaRvFKJGI/Yc8ymXAvtD4lP0jYOI4gVL7fnGwbMA84UxG5M9X3K2AuobItoXjbAGGDeRtwOsU85rFIcy4cbwSdiKN88h4GXAwMBU4roVsHjAVGEu6uvawf4eayvkS/boRcMhroX0JeL0cPTPF7AROBL+Sg5W6uJ32fVPJchE7u+h0zKfFLXppFQyiRVCnuy0peh0hWo+flctDr7p2V2R9RPJK0ZXhZOcVNaDlZS9+2xhUdq1+jW4I9yjn1lINz0EjChd1+YKSXnfJw0RQLRaPo6rgFqDQoHm9myUFb2sqJ/xWdfb0iZ9SZ2VYzW6h/gpMO3Qt1VlDi9J/BIatg7UTF9kIZMmTIkCFDhgwZMmQ4QfwLJtOTDz+1UgUAAAAASUVORK5CYII="
 
-AZ = {"endpoint":"https://openai-ibu-leadership-dashboard-instance.cognitiveservices.azure.com/","deployment":"gpt-4.1","api_key":"14Z24pmPY22AmDCAFJasrmOXgWzT5T7Cn8ElX516CdKQJtZzgt7LJQQJ99CBACHYHv6XJ3w3AAABACOG1yoB","api_version":"2024-12-01-preview"}
+# ═══════ CORTEX CONFIG ═══════ (Git-safe — secret loaded at runtime, never committed)
+#
+# This file is safe to commit to Git. The cookie is loaded from one of three
+# sources at startup, in priority order:
+#   1. Streamlit secrets:  .streamlit/secrets.toml  (recommended for local dev)
+#   2. Environment variable: CORTEX_COOKIE         (recommended for SageMaker / EC2)
+#   3. Local file:           ~/.cortex_cookie       (fallback for ad-hoc testing)
+#
+# None of those sources should ever be committed to source control. Add to .gitignore:
+#     .streamlit/secrets.toml
+#     .cortex_cookie
+#     CORTEX_COOKIE.env
+#
+# Setup for each source:
+#
+#   (1) Streamlit secrets — create .streamlit/secrets.toml in your project dir with:
+#         cortex_cookie = "paste-full-cookie-string-here"
+#
+#   (2) Environment variable — before launching Streamlit:
+#         export CORTEX_COOKIE='paste-full-cookie-string-here'
+#         streamlit run app_cortex.py
+#
+#   (3) Local file — save the raw cookie string (no prefix) to ~/.cortex_cookie
+#
+# When the cookie expires (typically every few hours to days based on Lilly's
+# AWS ALB config), update whichever source you're using and restart the app.
+#
+# PRODUCTION NOTE: Cookie-based auth is a proof-of-concept pattern only. For
+# unattended deployment (GitHub Actions, etc.) you need an Azure AD service
+# principal or OIDC federation. Confirm the supported auth pattern with the
+# Cortex platform team before going to production.
+
+import os
+from pathlib import Path
+
+def _load_cortex_cookie():
+    """Load Cortex auth cookie from secrets/env/file. Returns None if no source set."""
+    # Priority 1: Streamlit secrets (works on Streamlit Cloud AND local .streamlit/secrets.toml)
+    try:
+        cookie = st.secrets.get("cortex_cookie", "")
+        if cookie:
+            return cookie.strip()
+    except Exception:
+        pass  # no secrets configured — fall through to next source
+
+    # Priority 2: Environment variable (preferred for SageMaker / EC2 / containers)
+    env_cookie = os.environ.get("CORTEX_COOKIE", "").strip()
+    if env_cookie:
+        return env_cookie
+
+    # Priority 3: Local file in home directory
+    cookie_file = Path.home() / ".cortex_cookie"
+    if cookie_file.exists():
+        return cookie_file.read_text().strip()
+
+    return None
+
+CORTEX = {
+    "base_url": "https://cortex.lilly.com/cortex-openai",
+    "model": "ibubuddytest",  # only config confirmed accessible; swap once you register your own
+    "cookie": _load_cortex_cookie(),
+    "session_id": "ibu-leadership-dashboard",
+}
+
+# Fail fast with a useful message if no cookie source is configured
+if not CORTEX["cookie"]:
+    st.error(
+        "⚠️ Cortex auth cookie not found. Set one of the following before running:\n\n"
+        "• Streamlit secrets: add `cortex_cookie = \"...\"` to `.streamlit/secrets.toml`\n"
+        "• Env var: `export CORTEX_COOKIE='...'` then restart Streamlit\n"
+        "• File: save the cookie string to `~/.cortex_cookie`\n\n"
+        "Capture the cookie from browser DevTools → Network tab → "
+        "any successful POST to /cortex-openai/chat/completions → Request Headers → Cookie value."
+    )
+    st.stop()
 
 # ═══════ CSS ═══════
 st.markdown(f"""<style>
@@ -190,15 +264,50 @@ INITIATIVES: META(75%), Agentic AI(55%), CNN/LSTM(50%), Veeva(40%), LATAM(15%), 
 SAVINGS: EC2 500+hrs, Process ~600hrs, GIT ~1,500hrs = 2,600+ hrs/yr.
 BUSINESS: 4.2M reach (↑18%), $8.3M cost avoidance, 0.82 utilisation."""
 
-# ═══════ GPT ═══════
+# ═══════ GPT / LLM ═══════ (CHANGED — entire function rewritten for Cortex)
 def gpt(prompt, sys=None, tok=300):
+    """Call Cortex's OpenAI-compatible chat completions endpoint.
+
+    Preserves the original signature and return contract so the rest of the
+    app is unchanged. Returns the assistant message content as a string, or
+    a short error string prefixed with ⚠️ on failure.
+    """
     try:
-        c = AzureOpenAI(azure_endpoint=AZ["endpoint"],api_key=AZ["api_key"],api_version=AZ["api_version"])
         m = []
-        if sys: m.append({"role":"system","content":sys})
-        m.append({"role":"user","content":prompt})
-        return c.chat.completions.create(model=AZ["deployment"],messages=m,max_tokens=tok,temperature=0.3).choices[0].message.content.strip()
-    except Exception as e: return f"⚠️ {str(e)[:120]}"
+        if sys:
+            m.append({"role": "system", "content": sys})
+        m.append({"role": "user", "content": prompt})
+
+        url = f"{CORTEX['base_url']}/chat/completions?session_id={CORTEX['session_id']}"
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+            "Cookie": CORTEX["cookie"],
+        }
+        body = {
+            "model": CORTEX["model"],
+            "messages": m,
+            "temperature": 0.3,
+            "stream": False,
+            "max_tokens": tok,
+        }
+
+        r = requests.post(url, headers=headers, json=body, timeout=60)
+        r.raise_for_status()
+        data = r.json()
+        return data["choices"][0]["message"]["content"].strip()
+    except requests.exceptions.HTTPError as e:
+        # Most likely cause: expired cookie, missing model config, or rate limit.
+        # Surface a short, actionable hint without leaking the full URL/cookie.
+        status = e.response.status_code if e.response is not None else "?"
+        msg = ""
+        try:
+            msg = e.response.json().get("message", "")[:80]
+        except Exception:
+            pass
+        return f"⚠️ Cortex {status}: {msg or 'check cookie/model config'}"
+    except Exception as e:
+        return f"⚠️ {str(e)[:120]}"
 
 @st.cache_data(ttl=3600)
 def get_banner():
@@ -273,9 +382,9 @@ st.markdown(f'<div class="hdr"><img src="data:image/png;base64,{LOGO}" alt="Lill
 # ═══════ ASK DASHBOARD (top bar) ═══════
 ask_bar("ask_top", show_title=True)
 
-# ═══════ AI BANNER ═══════
+# ═══════ AI BANNER ═══════ (CHANGED — label updated from "GPT-4.1" to "Cortex")
 ban = get_banner()
-st.markdown(f'<div class="ai-ban"><div class="lb">🧠 AI Insight — GPT-4.1</div><div class="tx">{ban}</div></div>',unsafe_allow_html=True)
+st.markdown(f'<div class="ai-ban"><div class="lb">🧠 AI Insight — Cortex</div><div class="tx">{ban}</div></div>',unsafe_allow_html=True)
 
 # ═══════ TABS ═══════
 t1,t2,t3,t4 = st.tabs(["📊 Summary","🔴 SNOW Incidents","🔧 ES Sprint","⚙️ Config Program"])
@@ -295,7 +404,7 @@ with t1:
     st.markdown('<div class="sec">',unsafe_allow_html=True)
     c1,c2,c3 = st.columns(3)
     with c1:
-        shdr("🧠 Market Insights — AI Generated","GPT-4.1")
+        shdr("🧠 Market Insights — AI Generated","Cortex")  # CHANGED — was "GPT-4.1"
         ins = get_insights()
         st.markdown(f'<div class="gpt-r" style="font-size:13px;line-height:1.9;white-space:pre-line">{ins}</div>',unsafe_allow_html=True)
     with c2:
@@ -466,4 +575,5 @@ with t4:
         with mc2: st.markdown(f'<div class="bh" style="padding:10px"><div class="bv" style="font-size:20px;color:{BL}">16</div><div class="bs">Multi-Market Releases</div></div>',unsafe_allow_html=True)
     st.markdown('</div>',unsafe_allow_html=True)
 
-st.markdown(f'<div style="text-align:center;padding:16px 0;font-size:9px;color:{GY}">IBU NBA/E Operations | Eli Lilly and Company | Feb 2026 | AI Insights by Azure OpenAI GPT-4.1</div>',unsafe_allow_html=True)
+# CHANGED — footer label updated from "Azure OpenAI GPT-4.1" to "Cortex"
+st.markdown(f'<div style="text-align:center;padding:16px 0;font-size:9px;color:{GY}">IBU NBA/E Operations | Eli Lilly and Company | Feb 2026 | AI Insights by Cortex</div>',unsafe_allow_html=True)
